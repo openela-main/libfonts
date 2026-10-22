@@ -1,18 +1,23 @@
 Name: libfonts
 Version: 1.1.3
-Release: 21%{?dist}
+Release: 23%{?dist}
 Summary: TrueType Font Layouting
-License: LGPLv2 and UCD
+License: LGPL-2.1-only AND Unicode-DFS-2016
 Group: System Environment/Libraries
 #Original source: http://downloads.sourceforge.net/jfreereport/%%{name}-%%{version}.zip
 #unzip, find . -name "*.jar" -exec rm {} \;
 #to simplify the licensing
 Source: %{name}-%{version}-jarsdeleted.zip
 URL: http://reporting.pentaho.org/
-BuildRequires: ant, ant-contrib, java-devel, jpackage-utils, libloader >= 1.1.3
-Requires: java-headless, jpackage-utils, libloader >= 1.1.3
+BuildRequires: ant, ant-contrib, java-21-openjdk-devel, jpackage-utils, libloader >= 1.1.3
+Requires: java-21-openjdk-headless >= 1:21, jpackage-utils, libloader >= 1.1.3
 BuildArch: noarch
+
+%global java_home /usr/lib/jvm/java-21-openjdk
+
 Patch0: libfonts-1.1.2.build.patch
+Patch1: libfonts-1.1.2.java11.patch
+Patch2: libfonts-1.1.3-remove-commons-logging.patch
 
 %description
 LibFonts is a library developed to support advanced layouting in JFreeReport.
@@ -31,14 +36,17 @@ Javadoc for %{name}.
 %prep
 %setup -q -c
 %patch0 -p1 -b .build
+%patch1 -p1 -b .java11
+%patch2 -p1 -b .no_commons_logging
 find . -name "*.jar" -exec rm -f {} \;
 rm -r source/org/pentaho/reporting/libraries/fonts/itext
 mkdir -p lib
-build-jar-repository -s -p lib libbase commons-logging-api libloader
+build-jar-repository -s -p lib libbase libloader
 cd lib
-ln -s %{_javadir}/ant ant-contrib
+ln -s /usr/share/java/ant ant-contrib
 
 %build
+export JAVA_HOME=%{java_home}
 ant jar javadoc
 for file in README.txt licence-LGPL.txt ChangeLog.txt; do
     tr -d '\r' < $file > $file.new
@@ -60,6 +68,16 @@ cp -rp bin/javadoc/docs/api $RPM_BUILD_ROOT%{_javadocdir}/%{name}
 %{_javadocdir}/%{name}
 
 %changelog
+* Mon Oct 19 2026 Tomas Popela <tpopela@redhat.com> - 1.1.3-23
+- Remove commons logging dependency
+- Related: RHEL-286491
+
+* Tue Oct 06 2026 Tomas Popela <tpopela@redhat.com> - 1.1.3-22
+- OpenJDK 8 won't be supported anymore on RHEL 8 starting from November 2026,
+  move to OpenJDK 21
+- Update license to fix the failing rpminspect test
+- Resolves: RHEL-275421
+
 * Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.3-21
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
 
