@@ -1,12 +1,17 @@
 Name: libfonts
 Version: 1.1.3
-Release: 35%{?dist}
+Release: 36%{?dist}
 Summary: TrueType Font Layouting
-License: LGPLv2 and UCD
+License: LGPL-2.1-only AND Unicode-DFS-2016
 #Original source: http://downloads.sourceforge.net/jfreereport/%%{name}-%%{version}.zip
+#unzip
+#a) to simplify the licensing
 #unzip, find . -name "*.jar" -exec rm {} \;, rm -r patches
-#to simplify the licensing
-Source: %{name}-%{version}-jars-itextpatch-deleted.zip
+#b) to update data files to clearer license
+#cd encodings
+#wget -e robots=off --no-host-directories --recursive --no-parent --reject "index.html*" --cut-dirs=2 https://unicode.org/Public/MAPPINGS/
+#rm -rf OBSOLETE
+Source: %{name}-%{version}-jars-itextpatch_deleted-encodings_updated.zip
 URL: http://reporting.pentaho.org/
 BuildRequires: ant, java-devel, jpackage-utils, libloader >= 1.1.3
 Requires: java-headless, jpackage-utils, libloader >= 1.1.3
@@ -61,6 +66,12 @@ cp -rp bin/javadoc/docs/api $RPM_BUILD_ROOT%{_javadocdir}/%{name}
 %{_javadocdir}/%{name}
 
 %changelog
+* Wed Jul 01 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 1.1.3-36
+- Bump javac source/target from 1.6 to 1.8 for Java 17 compatibility
+- Migrate License to SPDX format (LGPL-2.1-only AND Unicode-DFS-2016)
+- Use repacked source tarball with updated unicode encoding data files
+- Resolves: RHEL-183541
+
 * Mon Aug 09 2021 Mohan Boddu <mboddu@redhat.com> - 1.1.3-35
 - Rebuilt for IMA sigs, glibc 2.34, aarch64 flags
   Related: rhbz#1991688
